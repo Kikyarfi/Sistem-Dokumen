@@ -1,0 +1,13 @@
+SANITIZATION REPORT
+===================
+
+Institutional identity scan results:
+PASS - no blocked institutional identity terms found.
+
+Additional checks:
+- No production deployment URL should be committed.
+- No production Spreadsheet ID or APP_SECRET is included.
+- Demo accounts use example.com only.
+- Demo master data is generic.
+
+Note: internal schema identifiers such as `NIP` may remain in backend code for compatibility, but UI/demo data uses generic identity wording and dummy values.
