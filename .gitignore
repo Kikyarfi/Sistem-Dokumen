@@ -1,0 +1,27 @@
+# Secrets / local config
+.env
+.env.*
+!.env.example
+.clasp.json
+credentials.json
+service-account*.json
+*secret*
+*token*
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Runtime / dependencies
+node_modules/
+*.log
+
+# Private / real data
+private/
+backups/
+exports/
+real-data/
+production-data/
+*.sqlite
+*.db
