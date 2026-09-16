@@ -1,0 +1,1018 @@
+<section id="dashboard" class="page active">
+  <style>
+    /* ==========================================================
+       DASHBOARD V18
+       Scoped di #dashboard agar tidak mengubah halaman lain.
+       ========================================================== */
+
+    #dashboard .v18-dashboard {
+      --v18-bg: #f5f7fb;
+      --v18-card: #ffffff;
+      --v18-text: #17233c;
+      --v18-muted: #718096;
+      --v18-border: #e7ebf3;
+      --v18-shadow: 0 12px 30px rgba(31, 45, 72, 0.08);
+      --v18-blue: #2f80ed;
+      --v18-green: #21b978;
+      --v18-violet: #7667e8;
+      --v18-orange: #f5a623;
+      --v18-soft-blue: #eef6ff;
+      --v18-soft-green: #edf9f4;
+      --v18-soft-violet: #f2f0ff;
+      --v18-soft-orange: #fff7e8;
+      color: var(--v18-text);
+    }
+
+    body.dark-mode #dashboard .v18-dashboard {
+      --v18-bg: transparent;
+      --v18-card: #252536;
+      --v18-text: #eef0f7;
+      --v18-muted: #a8adbd;
+      --v18-border: #39394d;
+      --v18-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+      --v18-soft-blue: rgba(47, 128, 237, 0.14);
+      --v18-soft-green: rgba(33, 185, 120, 0.14);
+      --v18-soft-violet: rgba(118, 103, 232, 0.14);
+      --v18-soft-orange: rgba(245, 166, 35, 0.14);
+    }
+
+    #dashboard .v18-hero {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 22px;
+    }
+
+    #dashboard .v18-title-wrap {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    #dashboard .v18-realtime {
+      flex: 0 0 auto;
+      min-width: 230px;
+      text-align: right;
+      padding-top: 2px;
+      color: var(--v18-muted);
+    }
+
+    #dashboard .v18-realtime-date {
+      font-size: 13px;
+      font-weight: 650;
+      line-height: 1.4;
+    }
+
+    #dashboard .v18-realtime-time {
+      margin-top: 3px;
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--v18-text);
+      letter-spacing: .01em;
+    }
+
+    #dashboard .v18-title-wrap h1 {
+      margin: 0;
+      color: var(--v18-text);
+      font-size: clamp(25px, 2.3vw, 34px);
+      font-weight: 750;
+      letter-spacing: -0.6px;
+    }
+
+    #dashboard .v18-subtitle {
+      margin-top: 7px;
+      color: var(--v18-muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    #dashboard .v18-year-box {
+      width: 150px;
+      margin-top: 12px;
+      background: var(--v18-card);
+      border: 1px solid var(--v18-border);
+      border-radius: 13px;
+      padding: 7px 11px;
+      box-shadow: 0 7px 20px rgba(31, 45, 72, 0.06);
+    }
+
+    #dashboard .v18-year-label {
+      display: block;
+      font-size: 11px;
+      color: var(--v18-muted);
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+
+    #dashboard #dashboardTahun {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--v18-text);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    body.dark-mode #dashboard #dashboardTahun option,
+    body.dark-mode #dashboard .v18-month-select option {
+      background: #252536;
+      color: #eef0f7;
+    }
+
+    #dashboard .v18-loading,
+    #dashboard .v18-error {
+      border-radius: 16px;
+      padding: 18px 20px;
+      margin-bottom: 18px;
+      border: 1px solid var(--v18-border);
+      background: var(--v18-card);
+      color: var(--v18-muted);
+    }
+
+    #dashboard .v18-error {
+      color: #dc3545;
+      border-color: rgba(220, 53, 69, 0.24);
+    }
+
+    #dashboard .v18-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    #dashboard .v18-kpi {
+      position: relative;
+      overflow: hidden;
+      min-height: 140px;
+      padding: 18px;
+      border-radius: 20px;
+      background: var(--v18-card);
+      border: 1px solid var(--v18-border);
+      box-shadow: var(--v18-shadow);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    #dashboard .v18-kpi-content {
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    #dashboard .v18-kpi.clickable {
+      cursor: pointer;
+    }
+
+    #dashboard .v18-kpi.clickable:hover,
+    #dashboard .v18-kpi.clickable:focus {
+      transform: translateY(-3px);
+      border-color: rgba(47, 128, 237, .35);
+      box-shadow: 0 16px 36px rgba(31, 45, 72, 0.13);
+      outline: none;
+    }
+
+    #dashboard .v18-kpi::after {
+      content: "";
+      position: absolute;
+      width: 105px;
+      height: 105px;
+      right: -32px;
+      bottom: -42px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: .055;
+    }
+
+    #dashboard .v18-kpi-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    #dashboard .v18-kpi-icon {
+      width: 70px;
+      height: 70px;
+      flex: 0 0 70px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 17px;
+      font-size: 31px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .28);
+    }
+
+    #dashboard .v18-kpi-icon.total {
+      color: var(--v18-blue);
+      background: var(--v18-soft-blue);
+    }
+
+    #dashboard .v18-kpi-icon.bid1 {
+      color: var(--v18-green);
+      background: var(--v18-soft-green);
+    }
+
+    #dashboard .v18-kpi-icon.bid2 {
+      color: var(--v18-orange);
+      background: var(--v18-soft-orange);
+    }
+
+    #dashboard .v18-kpi-icon.bid3 {
+      color: var(--v18-violet);
+      background: var(--v18-soft-violet);
+    }
+
+    #dashboard .v18-kpi-arrow {
+      position: absolute;
+      top: 16px;
+      right: 17px;
+      color: var(--v18-muted);
+      font-size: 18px;
+    }
+
+    #dashboard .v18-kpi-value {
+      margin-top: 4px;
+      font-size: 30px;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      color: var(--v18-text);
+    }
+
+    #dashboard .v18-kpi-label {
+      margin-top: 8px;
+      color: var(--v18-muted);
+      font-size: 13px;
+      line-height: 1.35;
+      min-height: 35px;
+    }
+
+    #dashboard .v18-grid-2 {
+      display: grid;
+      grid-template-columns: minmax(0, 1.65fr) minmax(300px, .85fr);
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    #dashboard .v18-card {
+      background: var(--v18-card);
+      border: 1px solid var(--v18-border);
+      border-radius: 20px;
+      box-shadow: var(--v18-shadow);
+      overflow: hidden;
+    }
+
+    #dashboard .v18-card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 18px 20px 8px;
+    }
+
+    #dashboard .v18-card-title {
+      margin: 0;
+      color: var(--v18-text);
+      font-size: 16px;
+      font-weight: 750;
+    }
+
+    #dashboard .v18-card-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #dashboard .v18-title-icon {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      background: var(--v18-soft-blue);
+      color: var(--v18-blue);
+      font-size: 16px;
+    }
+
+    #dashboard .v18-title-icon.green {
+      background: var(--v18-soft-green);
+      color: var(--v18-green);
+    }
+
+    #dashboard .v18-title-icon.orange {
+      background: var(--v18-soft-orange);
+      color: var(--v18-orange);
+    }
+
+    #dashboard .v18-title-icon.violet {
+      background: var(--v18-soft-violet);
+      color: var(--v18-violet);
+    }
+
+    #dashboard .v18-card-desc {
+      margin-top: 4px;
+      color: var(--v18-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    #dashboard .v18-chart-pad {
+      padding: 2px 10px 12px;
+      min-height: 320px;
+    }
+
+    #dashboard .v18-month-controls {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    #dashboard .v18-month-select,
+    #dashboard .v18-reset-btn {
+      height: 34px;
+      border: 1px solid var(--v18-border);
+      border-radius: 10px;
+      background: var(--v18-card);
+      color: var(--v18-text);
+      font-size: 12px;
+      padding: 0 9px;
+      outline: none;
+    }
+
+    #dashboard .v18-reset-btn {
+      cursor: pointer;
+      font-weight: 650;
+    }
+
+    #dashboard .v18-reset-btn:hover {
+      border-color: rgba(47, 128, 237, .5);
+      color: var(--v18-blue);
+    }
+
+    #dashboard .v18-section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 24px 0 12px;
+    }
+
+    #dashboard .v18-section-head h2 {
+      margin: 0;
+      color: var(--v18-text);
+      font-size: 20px;
+      font-weight: 780;
+    }
+
+    #dashboard .v18-section-head p {
+      margin: 4px 0 0;
+      color: var(--v18-muted);
+      font-size: 13px;
+    }
+
+    #dashboard .v18-bidang-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    #dashboard .v18-bidang-card {
+      background: var(--v18-card);
+      border: 1px solid var(--v18-border);
+      border-radius: 20px;
+      box-shadow: var(--v18-shadow);
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    #dashboard .v18-bidang-card-head {
+      position: relative;
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid var(--v18-border);
+    }
+
+    #dashboard .v18-bidang-card-head::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 5px;
+      height: 100%;
+      background: var(--accent, var(--v18-blue));
+    }
+
+    #dashboard .v18-bidang-name {
+      color: var(--v18-text);
+      font-weight: 760;
+      font-size: 14px;
+      line-height: 1.35;
+      padding-right: 58px;
+    }
+
+    #dashboard .v18-bidang-total {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      min-width: 38px;
+      padding: 5px 9px;
+      text-align: center;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 12px;
+      color: var(--accent, var(--v18-blue));
+      background: color-mix(in srgb, var(--accent, #2f80ed) 12%, transparent);
+    }
+
+    #dashboard .v18-category-list {
+      max-height: 455px;
+      overflow: auto;
+      padding: 8px 10px 12px;
+    }
+
+    #dashboard .v18-category-row {
+      border-radius: 13px;
+      padding: 10px 10px;
+      margin: 3px 0;
+      transition: background .15s ease;
+    }
+
+    #dashboard .v18-category-row:hover {
+      background: rgba(47, 128, 237, .055);
+    }
+
+    body.dark-mode #dashboard .v18-category-row:hover {
+      background: rgba(255, 255, 255, .045);
+    }
+
+    #dashboard .v18-category-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    #dashboard .v18-category-name {
+      min-width: 0;
+      color: var(--v18-text);
+      font-size: 12.5px;
+      font-weight: 650;
+      line-height: 1.35;
+    }
+
+    #dashboard .v18-category-count {
+      flex: 0 0 auto;
+      padding: 3px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 750;
+      color: var(--v18-muted);
+      background: rgba(113, 128, 150, .09);
+    }
+
+    #dashboard .v18-subcategory-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 8px;
+      padding-left: 5px;
+    }
+
+    #dashboard .v18-subcategory-chip {
+      border: 1px solid var(--v18-border);
+      background: transparent;
+      color: var(--v18-muted);
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: 10.5px;
+      cursor: pointer;
+      transition: all .15s ease;
+      max-width: 100%;
+      white-space: normal;
+      text-align: left;
+      line-height: 1.25;
+    }
+
+    #dashboard .v18-subcategory-chip:hover {
+      border-color: var(--accent, var(--v18-blue));
+      color: var(--accent, var(--v18-blue));
+      background: rgba(47, 128, 237, .05);
+    }
+
+    #dashboard .v18-bottom-grid {
+      display: grid;
+      grid-template-columns: minmax(0, .9fr) minmax(0, 1.35fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    #dashboard .v18-ranking,
+    #dashboard .v18-activity {
+      padding: 8px 14px 16px;
+    }
+
+    /* ==========================================================
+       V19.2 - TOTAL KAPASITAS BERKAS
+       ========================================================== */
+
+    #dashboard .v19-storage-card {
+      margin-bottom: 24px;
+    }
+
+    #dashboard .v19-storage-body {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      padding: 12px 20px 22px;
+    }
+
+    #dashboard .v19-storage-main {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    #dashboard .v19-storage-icon {
+      width: 64px;
+      height: 64px;
+      flex: 0 0 64px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 18px;
+      background: var(--v18-soft-blue);
+      color: var(--v18-blue);
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    #dashboard .v19-storage-icon > i {
+      width: 100%;
+      height: 100%;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      line-height: 1 !important;
+    }
+
+    #dashboard .v19-storage-icon > i::before {
+      display: block !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      line-height: 1 !important;
+      vertical-align: 0 !important;
+    }
+
+    #dashboard .v19-storage-value {
+      color: var(--v18-text);
+      font-size: clamp(26px, 3vw, 38px);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -.4px;
+    }
+
+    #dashboard .v19-storage-label {
+      margin-top: 6px;
+      color: var(--v18-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    #dashboard .v19-storage-meta {
+      text-align: right;
+      color: var(--v18-muted);
+      font-size: 12px;
+      line-height: 1.65;
+      white-space: nowrap;
+    }
+
+    #dashboard .v19-storage-meta strong {
+      color: var(--v18-text);
+      font-weight: 750;
+    }
+
+    @media (max-width: 680px) {
+      #dashboard .v19-storage-body {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      #dashboard .v19-storage-meta {
+        text-align: left;
+        white-space: normal;
+      }
+    }
+
+    #dashboard .v18-rank-row,
+    #dashboard .v18-activity-row {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 10px 5px;
+      border-bottom: 1px solid var(--v18-border);
+    }
+
+    #dashboard .v18-rank-row:last-child,
+    #dashboard .v18-activity-row:last-child {
+      border-bottom: 0;
+    }
+
+    #dashboard .v18-rank-row {
+      cursor: pointer;
+    }
+
+    #dashboard .v18-rank-no {
+      width: 28px;
+      height: 28px;
+      flex: 0 0 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      background: var(--v18-soft-blue);
+      color: var(--v18-blue);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    #dashboard .v18-rank-text,
+    #dashboard .v18-activity-text {
+      min-width: 0;
+      flex: 1;
+    }
+
+    #dashboard .v18-rank-name,
+    #dashboard .v18-activity-title {
+      color: var(--v18-text);
+      font-size: 12.5px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    #dashboard .v18-rank-meta,
+    #dashboard .v18-activity-meta {
+      margin-top: 3px;
+      color: var(--v18-muted);
+      font-size: 10.5px;
+      line-height: 1.35;
+    }
+
+    #dashboard .v18-rank-value {
+      flex: 0 0 auto;
+      color: var(--v18-text);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    #dashboard .v18-activity-row {
+      cursor: pointer;
+      border-radius: 10px;
+    }
+
+    #dashboard .v18-activity-row:hover {
+      background: rgba(47, 128, 237, .055);
+    }
+
+    #dashboard .v18-file-icon {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      background: var(--v18-soft-blue);
+      color: var(--v18-blue);
+    }
+
+    /* ==========================================================
+       V18.3 - ICON ALIGNMENT FIX
+       Bootstrap Icons menggunakan pseudo-element ::before yang
+       secara default mengikuti baseline teks. Blok ini memastikan
+       seluruh icon Dashboard benar-benar center horizontal/vertikal.
+       ========================================================== */
+
+    #dashboard .v18-kpi-icon,
+    #dashboard .v18-title-icon,
+    #dashboard .v18-file-icon,
+    #dashboard .v18-rank-no {
+      box-sizing: border-box;
+      line-height: 1 !important;
+      text-align: center;
+    }
+
+    #dashboard .v18-kpi-icon > i,
+    #dashboard .v18-title-icon > i,
+    #dashboard .v18-file-icon > i {
+      width: 100%;
+      height: 100%;
+      margin: 0 !important;
+      padding: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      line-height: 1 !important;
+      vertical-align: middle !important;
+      position: static !important;
+    }
+
+    #dashboard .v18-kpi-icon > i::before,
+    #dashboard .v18-title-icon > i::before,
+    #dashboard .v18-file-icon > i::before {
+      display: block !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      line-height: 1 !important;
+      vertical-align: 0 !important;
+      position: static !important;
+      transform: none !important;
+    }
+
+    #dashboard .v18-kpi-icon > i {
+      font-size: 31px !important;
+    }
+
+    #dashboard .v18-title-icon > i {
+      font-size: 16px !important;
+    }
+
+    #dashboard .v18-file-icon > i {
+      font-size: 16px !important;
+    }
+
+    #dashboard .v18-rank-no {
+      align-items: center !important;
+      justify-content: center !important;
+      line-height: 1 !important;
+      padding: 0 !important;
+    }
+
+    #dashboard .v18-activity-time {
+      flex: 0 0 auto;
+      color: var(--v18-muted);
+      font-size: 10.5px;
+      text-align: right;
+    }
+
+    #dashboard .v18-empty {
+      padding: 22px 10px;
+      text-align: center;
+      color: var(--v18-muted);
+      font-size: 12px;
+    }
+
+    #dashboard .v18-click-hint {
+      color: var(--v18-muted);
+      font-size: 11px;
+    }
+
+    @media (max-width: 1180px) {
+      #dashboard .v18-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      #dashboard .v18-bidang-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 860px) {
+      #dashboard .v18-grid-2,
+      #dashboard .v18-bottom-grid {
+        grid-template-columns: 1fr;
+      }
+
+      #dashboard .v18-hero {
+        flex-direction: column;
+      }
+
+      #dashboard .v18-year-box {
+        width: 150px;
+      }
+
+      #dashboard .v18-realtime {
+        width: 100%;
+        min-width: 0;
+        text-align: left;
+        padding-top: 0;
+      }
+    }
+
+    @media (max-width: 580px) {
+      #dashboard .v18-kpi-grid {
+        grid-template-columns: 1fr;
+      }
+
+      #dashboard .v18-card-head {
+        flex-direction: column;
+      }
+    }
+  </style>
+
+  <div class="v18-dashboard">
+
+    <div class="v18-hero">
+      <div class="v18-title-wrap">
+        <h1>Dashboard Dokumen</h1>
+        <div class="v18-subtitle">
+          Ringkasan berkas berdasarkan Bidang, Kategori, dan Subkategori.
+          Klik bagian dashboard untuk langsung membuka Bank Data terkait.
+        </div>
+
+        <div class="v18-year-box">
+          <span class="v18-year-label">Periode Tahun</span>
+          <select
+            id="dashboardTahun"
+            onchange="loadDashboard(this.value)"
+          >
+            <option value="">Tahun</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="v18-realtime" aria-live="polite">
+        <div id="dashboardRealtimeDate" class="v18-realtime-date">
+          -
+        </div>
+        <div id="dashboardRealtimeTime" class="v18-realtime-time">
+          --:--:-- WIB
+        </div>
+      </div>
+    </div>
+
+    <div id="dashboardLoading" class="v18-loading">
+      <i class="bi bi-arrow-repeat me-2"></i>
+      Memuat dashboard...
+    </div>
+
+    <div id="dashboardError" class="v18-error hidden"></div>
+
+    <div id="dashboardContent" class="hidden">
+
+      <div class="v18-kpi-grid">
+
+        <div class="v18-kpi">
+          <div class="v18-kpi-icon total">
+            <i class="bi bi-file-earmark-text"></i>
+          </div>
+          <div class="v18-kpi-content">
+            <div id="statTotalBerkas" class="v18-kpi-value">0</div>
+            <div class="v18-kpi-label">Total Berkas</div>
+          </div>
+        </div>
+
+        <div
+          class="v18-kpi clickable"
+          role="button"
+          tabindex="0"
+          onclick="openDashboardBidang('BID001')"
+          onkeydown="handleDashboardNavKey(event, 'bidang', 'BID001')"
+          title="Buka Bank Data Administrasi"
+        >
+          <div class="v18-kpi-icon bid1">
+            <i class="bi bi-folder2-open"></i>
+          </div>
+          <div class="v18-kpi-content">
+            <div id="statBidang001" class="v18-kpi-value">0</div>
+            <div class="v18-kpi-label">Administrasi</div>
+          </div>
+          <i class="bi bi-arrow-up-right v18-kpi-arrow"></i>
+        </div>
+
+        <div
+          class="v18-kpi clickable"
+          role="button"
+          tabindex="0"
+          onclick="openDashboardBidang('BID002')"
+          onkeydown="handleDashboardNavKey(event, 'bidang', 'BID002')"
+          title="Buka Bank Data Keuangan"
+        >
+          <div class="v18-kpi-icon bid2">
+            <i class="bi bi-bar-chart-line-fill"></i>
+          </div>
+          <div class="v18-kpi-content">
+            <div id="statBidang002" class="v18-kpi-value">0</div>
+            <div class="v18-kpi-label">Keuangan</div>
+          </div>
+          <i class="bi bi-arrow-up-right v18-kpi-arrow"></i>
+        </div>
+
+        <div
+          class="v18-kpi clickable"
+          role="button"
+          tabindex="0"
+          onclick="openDashboardBidang('BID003')"
+          onkeydown="handleDashboardNavKey(event, 'bidang', 'BID003')"
+          title="Buka Bank Data Operasional"
+        >
+          <div class="v18-kpi-icon bid3">
+            <i class="bi bi-people-fill"></i>
+          </div>
+          <div class="v18-kpi-content">
+            <div id="statBidang003" class="v18-kpi-value">0</div>
+            <div class="v18-kpi-label">Operasional</div>
+          </div>
+          <i class="bi bi-arrow-up-right v18-kpi-arrow"></i>
+        </div>
+
+      </div>
+
+      <div class="v18-grid-2">
+        <div class="v18-card">
+          <div class="v18-card-head">
+            <div>
+              <div class="v18-card-title-row">
+                <span class="v18-title-icon"><i class="bi bi-bar-chart-fill"></i></span>
+                <h3 class="v18-card-title">Jumlah Berkas per Bidang</h3>
+              </div>
+              <div class="v18-card-desc">Klik batang grafik untuk membuka Bank Data Bidang.</div>
+            </div>
+          </div>
+          <div id="dashboardBidangChart" class="v18-chart-pad"></div>
+        </div>
+
+        <div class="v18-card">
+          <div class="v18-card-head">
+            <div>
+              <div class="v18-card-title-row">
+                <span class="v18-title-icon violet"><i class="bi bi-pie-chart-fill"></i></span>
+                <h3 class="v18-card-title">Distribusi Berkas</h3>
+              </div>
+              <div class="v18-card-desc">Persentase komposisi berkas antar Bidang.</div>
+            </div>
+          </div>
+          <div id="dashboardDonutChart" class="v18-chart-pad"></div>
+        </div>
+      </div>
+
+      <div class="v18-card">
+        <div class="v18-card-head">
+          <div>
+            <div class="v18-card-title-row">
+              <span class="v18-title-icon green"><i class="bi bi-calendar3"></i></span>
+              <h3 class="v18-card-title">Tren Berkas per Bulan</h3>
+            </div>
+            <div class="v18-card-desc">Perbandingan jumlah berkas bulanan untuk ketiga Bidang.</div>
+          </div>
+          <div class="v18-month-controls">
+            <select id="dashboardBulanMulai" class="v18-month-select" onchange="applyDashboardMonthFilter()" title="Bulan mulai">
+              <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option><option value="4">Apr</option><option value="5">Mei</option><option value="6">Jun</option><option value="7">Jul</option><option value="8">Agu</option><option value="9">Sep</option><option value="10">Okt</option><option value="11">Nov</option><option value="12">Des</option>
+            </select>
+            <span class="v18-click-hint">s.d.</span>
+            <select id="dashboardBulanSampai" class="v18-month-select" onchange="applyDashboardMonthFilter()" title="Bulan akhir">
+              <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option><option value="4">Apr</option><option value="5">Mei</option><option value="6">Jun</option><option value="7">Jul</option><option value="8">Agu</option><option value="9">Sep</option><option value="10">Okt</option><option value="11">Nov</option><option value="12" selected>Des</option>
+            </select>
+            <button type="button" class="v18-reset-btn" onclick="resetDashboardMonthFilter()">Semua Bulan</button>
+          </div>
+        </div>
+        <div id="dashboardMonthlyChart" class="v18-chart-pad"></div>
+      </div>
+
+      <div class="v18-section-head">
+        <div><h2>Detail Kategori per Bidang</h2><p>Kategori dan subkategori ditampilkan langsung dari master data terbaru.</p></div>
+        <div class="v18-click-hint">Klik nama kategori/subkategori untuk membuka Bank Data</div>
+      </div>
+
+      <div id="dashboardBidangDetail" class="v18-bidang-grid"></div>
+
+      <div class="v18-bottom-grid">
+        <div class="v18-card">
+          <div class="v18-card-head"><div><div class="v18-card-title-row"><span class="v18-title-icon orange"><i class="bi bi-file-earmark-text"></i></span><h3 class="v18-card-title">Kategori Terbanyak</h3></div><div class="v18-card-desc">Peringkat berdasarkan jumlah berkas pada tahun terpilih.</div></div></div>
+          <div id="dashboardTopKategori" class="v18-ranking"></div>
+        </div>
+
+        <div class="v18-card">
+          <div class="v18-card-head"><div><div class="v18-card-title-row"><span class="v18-title-icon"><i class="bi bi-clock-history"></i></span><h3 class="v18-card-title">Aktivitas Berkas Terbaru</h3></div><div class="v18-card-desc">Berkas terbaru pada tahun yang sedang ditampilkan.</div></div></div>
+          <div id="dashboardRecentActivity" class="v18-activity"></div>
+        </div>
+      </div>
+
+      <div class="v18-card v19-storage-card">
+        <div class="v18-card-head">
+          <div><div class="v18-card-title-row"><span class="v18-title-icon"><i class="bi bi-hdd-stack-fill"></i></span><h3 class="v18-card-title">Kapasitas Total Berkas</h3></div><div class="v18-card-desc">Total ukuran seluruh file pada Bank Data dari semua tahun.</div></div>
+        </div>
+        <div class="v19-storage-body">
+          <div class="v19-storage-main">
+            <span class="v19-storage-icon"><i class="bi bi-database-fill"></i></span>
+            <div><div id="dashboardStorageValue" class="v19-storage-value">Menghitung...</div><div id="dashboardStorageLabel" class="v19-storage-label">Mengambil informasi ukuran file dari Google Drive.</div></div>
+          </div>
+          <div id="dashboardStorageMeta" class="v19-storage-meta"><strong>-</strong></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
