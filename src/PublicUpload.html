@@ -1,0 +1,200 @@
+<div id="publicUploadPage" class="public-shell hidden">
+
+  <div class="public-topbar">
+    <div class="public-brand">
+      <div class="public-brand-logo" style="display:flex;align-items:center;justify-content:center;background:#435ebe;color:#fff;border-radius:12px;font-weight:800;">SD</div>
+      <div>
+        <div class="public-brand-ministry">SISTEM DOKUMEN</div>
+        <div class="public-brand-unit">Portal Upload Dokumen</div>
+      </div>
+    </div>
+
+    <button
+      class="public-back-btn"
+      type="button"
+      onclick="showLandingPage()"
+    >
+      <i class="bi bi-arrow-left"></i>
+      Kembali
+    </button>
+  </div>
+
+
+  <main class="public-upload-main">
+
+    <div class="public-upload-card">
+
+      <div class="public-upload-header">
+        <div class="public-upload-icon">
+          <i class="bi bi-cloud-arrow-up-fill"></i>
+        </div>
+
+        <div>
+          <h1>Upload Berkas</h1>
+          <p>
+            Isi identitas pengunggah dan data berkas dengan benar.
+            Data pengunggah akan dicatat pada History Admin.
+          </p>
+        </div>
+      </div>
+
+
+      <div class="public-form-section-title">
+        Identitas Pengunggah
+      </div>
+
+      <div class="public-form-grid">
+
+        <div class="public-field">
+          <label for="publicNip">ID Pengguna <span>*</span></label>
+          <input
+            id="publicNip"
+            type="text"
+            maxlength="30"
+            placeholder="Masukkan ID Pengguna"
+          >
+        </div>
+
+        <div class="public-field">
+          <label for="publicNama">Nama <span>*</span></label>
+          <input
+            id="publicNama"
+            type="text"
+            maxlength="100"
+            placeholder="Masukkan nama lengkap"
+          >
+        </div>
+
+        <div class="public-field full">
+          <label for="publicUnitKerja">Unit Kerja <span>*</span></label>
+          <select
+            id="publicUnitKerja"
+            disabled
+          >
+            <option value="">Memuat Unit Kerja...</option>
+          </select>
+        </div>
+
+      </div>
+
+
+      <div class="public-form-section-title">
+        Data Berkas
+      </div>
+
+      <div class="public-form-grid">
+
+        <div class="public-field full">
+          <label for="publicUploadBidang">Bidang <span>*</span></label>
+          <select
+            id="publicUploadBidang"
+            onchange="onPublicUploadBidangChange()"
+          >
+            <option value="">Pilih Bidang</option>
+          </select>
+        </div>
+
+        <div class="public-field">
+          <label for="publicUploadKategori">Kategori <span>*</span></label>
+          <select
+            id="publicUploadKategori"
+            onchange="onPublicUploadKategoriChange()"
+            disabled
+          >
+            <option value="">Pilih Bidang terlebih dahulu</option>
+          </select>
+        </div>
+
+        <div class="public-field">
+          <label for="publicUploadSubkategori">Subkategori</label>
+          <select id="publicUploadSubkategori" disabled>
+            <option value="">Pilih Subkategori</option>
+          </select>
+        </div>
+
+        <div class="public-field">
+          <label for="publicUploadNomor">Nomor Berkas <span>*</span></label>
+          <input
+            id="publicUploadNomor"
+            type="text"
+            maxlength="150"
+            placeholder="Masukkan nomor berkas"
+          >
+        </div>
+
+        <div class="public-field">
+          <label for="publicUploadTanggal">Tanggal Berkas <span>*</span></label>
+          <input
+            id="publicUploadTanggal"
+            type="date"
+          >
+        </div>
+
+        <div class="public-field full">
+          <label for="publicUploadJudul">Judul Berkas <span>*</span></label>
+          <input
+            id="publicUploadJudul"
+            type="text"
+            maxlength="250"
+            placeholder="Masukkan judul berkas"
+          >
+        </div>
+
+        <div class="public-field full">
+          <label for="publicUploadKeterangan">Keterangan</label>
+          <textarea
+            id="publicUploadKeterangan"
+            placeholder="Keterangan tambahan (opsional)"
+          ></textarea>
+        </div>
+
+        <div class="public-field full">
+          <label for="publicUploadFile">File <span>*</span></label>
+          <input
+            id="publicUploadFile"
+            type="file"
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+          >
+          <small>
+            PDF, Word, Excel, atau PowerPoint. Maksimal 10 MB.
+          </small>
+        </div>
+
+      </div>
+
+
+      <div class="public-upload-actions">
+
+        <button
+          id="publicUploadButton"
+          class="public-submit-btn"
+          type="button"
+          onclick="submitPublicUpload()"
+        >
+          <i class="bi bi-cloud-arrow-up-fill"></i>
+          Upload Berkas
+        </button>
+
+        <button
+          class="public-reset-btn"
+          type="button"
+          onclick="resetPublicUploadForm()"
+        >
+          Reset
+        </button>
+
+      </div>
+
+      <div
+        id="publicUploadMessage"
+        class="public-upload-message"
+      ></div>
+
+    </div>
+
+  </main>
+
+  <footer class="public-footer">
+    2026 © Sistem Dokumen · Dibuat oleh <a href="https://github.com/kikyarfi" target="_blank" rel="noopener noreferrer">@kikyarfi</a>
+  </footer>
+</div>
