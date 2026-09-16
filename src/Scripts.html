@@ -1,0 +1,555 @@
+<script type="module">
+  const state = {
+    token: localStorage.getItem('sistemDokumenToken') || '',
+    user: null,
+    master: { bidang: [], kategori: [], subkategori: [], unitKerja: [] },
+    berkas: [],
+    filtered: [],
+    history: [],
+    currentDetail: null,
+    bankView: 'list',
+    pdfjs: null,
+    pdfScale: 1.2
+  };
+
+  const $ = id => document.getElementById(id);
+  const esc = value => String(value ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+
+  function callServer(name, ...args) {
+    return new Promise((resolve, reject) => {
+      const runner = google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler(error => reject(new Error(error && error.message ? error.message : String(error))));
+      runner[name](...args);
+    });
+  }
+
+  function setMessage(id, text, ok = false) {
+    const el = $(id);
+    if (!el) return;
+    el.textContent = text || '';
+    el.style.color = ok ? '#198754' : '#dc3545';
+  }
+
+  function hideAllRootPages() {
+    ['landingPage','publicUploadPage','loginPage','mainApp'].forEach(id => $(id)?.classList.add('hidden'));
+  }
+
+  window.showLandingPage = function() {
+    hideAllRootPages();
+    $('landingPage')?.classList.remove('hidden');
+  };
+
+  window.showLoginPage = function() {
+    hideAllRootPages();
+    $('loginPage')?.classList.remove('hidden');
+    setMessage('loginMessage', '');
+    $('loginNip')?.focus();
+  };
+
+  window.showPublicUploadPage = async function() {
+    hideAllRootPages();
+    $('publicUploadPage')?.classList.remove('hidden');
+    try {
+      state.master = await callServer('getMasterDataPublic');
+      fillMasterSelects(true);
+    } catch (e) {
+      setMessage('publicUploadMessage', e.message);
+    }
+  };
+
+  window.toggleTheme = function() {
+    document.body.classList.toggle('dark-mode');
+  };
+
+  window.submitLogin = async function() {
+    const btn = $('loginButton');
+    const userId = $('loginNip')?.value.trim();
+    const password = $('loginPassword')?.value || '';
+    setMessage('loginMessage', '');
+    if (btn) btn.disabled = true;
+    try {
+      const result = await callServer('loginUser', userId, password);
+      state.token = result.token;
+      state.user = result.user;
+      localStorage.setItem('sistemDokumenToken', state.token);
+      await enterApp();
+    } catch (e) {
+      setMessage('loginMessage', e.message);
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  };
+
+  window.logoutApp = async function() {
+    try { if (state.token) await callServer('logoutUser', state.token); } catch (e) {}
+    state.token = '';
+    state.user = null;
+    localStorage.removeItem('sistemDokumenToken');
+    document.body.classList.remove('dark-mode');
+    showLoginPage();
+  };
+
+  async function restoreSession() {
+    if (!state.token) return showLandingPage();
+    try {
+      state.user = await callServer('getSessionUser', state.token);
+      await enterApp();
+    } catch (e) {
+      localStorage.removeItem('sistemDokumenToken');
+      state.token = '';
+      showLandingPage();
+    }
+  }
+
+  async function enterApp() {
+    hideAllRootPages();
+    $('mainApp')?.classList.remove('hidden');
+    $('sidebarUserName').textContent = `${state.user.nip || '-'} | ${state.user.nama || '-'}`;
+    $('sidebarUserEmail').textContent = state.user.email || '-';
+    $('sidebarRole').textContent = state.user.role || 'USER';
+    document.querySelectorAll('[data-admin-only="true"]').forEach(el => {
+      el.classList.toggle('hidden', state.user.role !== 'ADMIN');
+    });
+    state.master = await callServer('getMasterData', state.token);
+    fillMasterSelects(false);
+    showPage('dashboard');
+  }
+
+  window.showPage = async function(pageId) {
+    document.querySelectorAll('#mainApp .page').forEach(page => page.classList.remove('active'));
+    $(pageId)?.classList.add('active');
+    document.querySelectorAll('.sidebar-menu button').forEach(btn => btn.classList.remove('active'));
+    const map = { dashboard:'navDashboard', bankdata:'navBankdata', upload:'navUpload', history:'navHistory' };
+    $(map[pageId])?.classList.add('active');
+
+    if (pageId === 'dashboard') await loadDashboard();
+    if (pageId === 'bankdata') await loadBankData();
+    if (pageId === 'history' && state.user?.role === 'ADMIN') await loadHistory();
+  };
+
+  function fillMasterSelects(publicMode) {
+    const bidangIds = publicMode ? ['publicUploadBidang'] : ['filterBidang','uploadBidang'];
+    bidangIds.forEach(id => fillSelect($(id), state.master.bidang, 'ID_Bidang', 'Nama_Bidang', id === 'filterBidang' ? 'Semua Bidang' : 'Pilih Bidang'));
+    if (publicMode) {
+      const unit = $('publicUnitKerja');
+      if (unit) {
+        unit.innerHTML = '<option value="">Pilih Unit Kerja</option>' + state.master.unitKerja.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join('');
+        unit.disabled = false;
+      }
+    }
+  }
+
+  function fillSelect(el, rows, valueKey, labelKey, placeholder) {
+    if (!el) return;
+    el.innerHTML = `<option value="">${esc(placeholder)}</option>` + rows.map(row => `<option value="${esc(row[valueKey])}">${esc(row[labelKey])}</option>`).join('');
+    el.disabled = false;
+  }
+
+  function categoriesByBidang(idBidang) {
+    return state.master.kategori.filter(x => x.ID_Bidang === idBidang);
+  }
+
+  function subcategoriesByCategory(idKategori) {
+    return state.master.subkategori.filter(x => x.ID_Kategori === idKategori);
+  }
+
+  window.onUploadBidangChange = function() {
+    fillSelect($('uploadKategori'), categoriesByBidang($('uploadBidang').value), 'ID_Kategori', 'Nama_Kategori', 'Pilih Kategori');
+    fillSelect($('uploadSubkategori'), [], 'ID_Subkategori', 'Nama_Subkategori', 'Pilih Subkategori');
+  };
+  window.onUploadKategoriChange = function() {
+    fillSelect($('uploadSubkategori'), subcategoriesByCategory($('uploadKategori').value), 'ID_Subkategori', 'Nama_Subkategori', 'Pilih Subkategori');
+  };
+  window.onPublicUploadBidangChange = function() {
+    fillSelect($('publicUploadKategori'), categoriesByBidang($('publicUploadBidang').value), 'ID_Kategori', 'Nama_Kategori', 'Pilih Kategori');
+    fillSelect($('publicUploadSubkategori'), [], 'ID_Subkategori', 'Nama_Subkategori', 'Pilih Subkategori');
+  };
+  window.onPublicUploadKategoriChange = function() {
+    fillSelect($('publicUploadSubkategori'), subcategoriesByCategory($('publicUploadKategori').value), 'ID_Subkategori', 'Nama_Subkategori', 'Pilih Subkategori');
+  };
+
+  async function fileToPayload(input) {
+    const file = input?.files?.[0];
+    if (!file) throw new Error('Pilih file terlebih dahulu.');
+    if (file.size > 10 * 1024 * 1024) throw new Error('Ukuran file maksimal 10 MB.');
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    return { name:file.name, mimeType:file.type || 'application/octet-stream', base64:String(dataUrl).split(',')[1] || '' };
+  }
+
+  window.submitUpload = async function() {
+    const btn = $('uploadSubmitButton');
+    if (btn) btn.disabled = true;
+    try {
+      const payload = {
+        idBidang:$('uploadBidang').value,
+        idKategori:$('uploadKategori').value,
+        idSubkategori:$('uploadSubkategori').value,
+        nomor:$('uploadNomor').value,
+        tanggal:$('uploadTanggal').value,
+        judul:$('uploadJudul').value,
+        keterangan:$('uploadKeterangan').value,
+        file:await fileToPayload($('uploadFile'))
+      };
+      await callServer('uploadBerkas', state.token, payload);
+      setMessage('uploadMessage', 'Berkas berhasil diupload.', true);
+      resetUploadForm();
+    } catch (e) { setMessage('uploadMessage', e.message); }
+    finally { if (btn) btn.disabled = false; }
+  };
+
+  window.resetUploadForm = function() {
+    ['uploadNomor','uploadTanggal','uploadJudul','uploadKeterangan','uploadFile'].forEach(id => { if ($(id)) $(id).value = ''; });
+    if ($('uploadBidang')) $('uploadBidang').value = '';
+    fillSelect($('uploadKategori'), [], 'ID_Kategori', 'Nama_Kategori', 'Pilih Bidang terlebih dahulu');
+    fillSelect($('uploadSubkategori'), [], 'ID_Subkategori', 'Nama_Subkategori', 'Pilih Subkategori');
+  };
+
+  window.submitPublicUpload = async function() {
+    const btn = $('publicUploadButton');
+    if (btn) btn.disabled = true;
+    try {
+      const payload = {
+        uploaderId:$('publicNip').value,
+        uploaderNama:$('publicNama').value,
+        unitKerja:$('publicUnitKerja').value,
+        idBidang:$('publicUploadBidang').value,
+        idKategori:$('publicUploadKategori').value,
+        idSubkategori:$('publicUploadSubkategori').value,
+        nomor:$('publicUploadNomor').value,
+        tanggal:$('publicUploadTanggal').value,
+        judul:$('publicUploadJudul').value,
+        keterangan:$('publicUploadKeterangan').value,
+        file:await fileToPayload($('publicUploadFile'))
+      };
+      await callServer('uploadBerkasPublic', payload);
+      setMessage('publicUploadMessage', 'Berkas berhasil dikirim.', true);
+      resetPublicUploadForm();
+    } catch (e) { setMessage('publicUploadMessage', e.message); }
+    finally { if (btn) btn.disabled = false; }
+  };
+
+  window.resetPublicUploadForm = function() {
+    ['publicNip','publicNama','publicUploadNomor','publicUploadTanggal','publicUploadJudul','publicUploadKeterangan','publicUploadFile'].forEach(id => { if ($(id)) $(id).value = ''; });
+    if ($('publicUnitKerja')) $('publicUnitKerja').value = '';
+    if ($('publicUploadBidang')) $('publicUploadBidang').value = '';
+    fillSelect($('publicUploadKategori'), [], 'ID_Kategori', 'Nama_Kategori', 'Pilih Bidang terlebih dahulu');
+    fillSelect($('publicUploadSubkategori'), [], 'ID_Subkategori', 'Nama_Subkategori', 'Pilih Subkategori');
+  };
+
+  // ==========================================================
+  // BANK DATA
+  // ==========================================================
+  async function loadBankData() {
+    $('loading').style.display = 'block';
+    try {
+      state.berkas = await callServer('getBerkas', state.token);
+      buildYearMonthFilters();
+      filterData();
+    } catch (e) {
+      $('tableContainer').innerHTML = `<div class="v18-error">${esc(e.message)}</div>`;
+    } finally {
+      $('loading').style.display = 'none';
+    }
+  }
+
+  function buildYearMonthFilters() {
+    const years = Array.from(new Set(state.berkas.map(x => String(x.Tanggal_Berkas || '').slice(0,4)).filter(x => /^\d{4}$/.test(x)))).sort().reverse();
+    $('filterTahun').innerHTML = '<option value="">Semua Tahun</option>' + years.map(y => `<option>${y}</option>`).join('');
+    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    $('filterBulan').innerHTML = '<option value="">Semua Bulan</option>' + months.map((m,i) => `<option value="${String(i+1).padStart(2,'0')}">${m}</option>`).join('');
+  }
+
+  window.onBidangFilterChange = function() {
+    fillSelect($('filterKategori'), categoriesByBidang($('filterBidang').value), 'ID_Kategori', 'Nama_Kategori', 'Semua Kategori');
+    fillSelect($('filterSubkategori'), [], 'ID_Subkategori', 'Nama_Subkategori', 'Semua Subkategori');
+    filterData();
+  };
+  window.onKategoriChange = function() {
+    fillSelect($('filterSubkategori'), subcategoriesByCategory($('filterKategori').value), 'ID_Subkategori', 'Nama_Subkategori', 'Semua Subkategori');
+    filterData();
+  };
+
+  window.filterData = function() {
+    const q = ($('searchInput')?.value || '').trim().toLowerCase();
+    const b = $('filterBidang')?.value || '';
+    const k = $('filterKategori')?.value || '';
+    const s = $('filterSubkategori')?.value || '';
+    const y = $('filterTahun')?.value || '';
+    const m = $('filterBulan')?.value || '';
+    state.filtered = state.berkas.filter(row => {
+      const hay = [row.Nomor_Berkas,row.Judul_Berkas,row.Nama_File,row.Nama_Bidang,row.Nama_Kategori,row.Nama_Subkategori].join(' ').toLowerCase();
+      const date = String(row.Tanggal_Berkas || '');
+      return (!q || hay.includes(q)) && (!b || row.ID_Bidang === b) && (!k || row.ID_Kategori === k) && (!s || row.ID_Subkategori === s) && (!y || date.slice(0,4) === y) && (!m || date.slice(5,7) === m);
+    });
+    $('resultCount').textContent = `${state.filtered.length} berkas ditemukan`;
+    renderBankData();
+  };
+
+  window.resetFilters = function() {
+    ['searchInput','filterBidang','filterKategori','filterSubkategori','filterTahun','filterBulan'].forEach(id => { if ($(id)) $(id).value = ''; });
+    fillSelect($('filterKategori'), [], 'ID_Kategori', 'Nama_Kategori', 'Semua Kategori');
+    fillSelect($('filterSubkategori'), [], 'ID_Subkategori', 'Nama_Subkategori', 'Semua Subkategori');
+    filterData();
+  };
+
+  window.setBankView = function(view) {
+    state.bankView = view === 'gallery' ? 'gallery' : 'list';
+    $('bankListContainer')?.classList.toggle('hidden', state.bankView !== 'list');
+    $('bankGalleryContainer')?.classList.toggle('hidden', state.bankView !== 'gallery');
+    $('bankListViewButton')?.classList.toggle('active', state.bankView === 'list');
+    $('bankGalleryViewButton')?.classList.toggle('active', state.bankView === 'gallery');
+    renderBankData();
+  };
+
+  function renderBankData() {
+    if (state.bankView === 'gallery') return renderGallery();
+    if (!state.filtered.length) {
+      $('tableContainer').innerHTML = '<div class="v18-empty">Belum ada berkas.</div>';
+      return;
+    }
+    $('tableContainer').innerHTML = `<div style="overflow:auto"><table><thead><tr><th>Tanggal</th><th>Bidang</th><th>Kategori</th><th>Nomor</th><th>Judul</th><th>File</th><th>Aksi</th></tr></thead><tbody>${state.filtered.map((row,i) => `<tr><td>${esc(row.Tanggal_Berkas)}</td><td>${esc(row.Nama_Bidang)}</td><td>${esc(row.Nama_Kategori)}</td><td>${esc(row.Nomor_Berkas)}</td><td>${esc(row.Judul_Berkas)}</td><td>${esc(row.Nama_File)}</td><td class="table-actions"><button onclick="openDetailByIndex(${i})">Detail</button><button onclick="downloadByIndex(${i})">Download</button>${state.user?.role==='ADMIN'?`<button onclick="deleteByIndex(${i})">Hapus</button>`:''}</td></tr>`).join('')}</tbody></table></div>`;
+  }
+
+  function renderGallery() {
+    const grouped = {};
+    state.filtered.forEach(row => {
+      const key = row.Nama_Bidang || 'Lainnya';
+      (grouped[key] ||= []).push(row);
+    });
+    $('galleryBreadcrumb').textContent = 'Semua Bidang';
+    $('galleryGrid').innerHTML = Object.entries(grouped).map(([name,rows]) => `<div class="card" style="cursor:pointer"><div style="font-size:28px;color:#435ebe"><i class="bi bi-folder-fill"></i></div><strong>${esc(name)}</strong><div style="color:#718096;font-size:12px;margin-top:5px">${rows.length} berkas</div></div>`).join('') || '<div class="v18-empty">Belum ada berkas.</div>';
+  }
+  window.galleryGoBack = function() { renderGallery(); };
+
+  window.openDetailByIndex = function(index) {
+    state.currentDetail = state.filtered[index];
+    const row = state.currentDetail;
+    if (!row) return;
+    const mapping = { detailBidang:'Nama_Bidang', detailKategori:'Nama_Kategori', detailSubkategori:'Nama_Subkategori', detailNomor:'Nomor_Berkas', detailTanggal:'Tanggal_Berkas', detailJudul:'Judul_Berkas', detailKeterangan:'Keterangan', detailFileName:'Nama_File' };
+    Object.entries(mapping).forEach(([id,key]) => { if ($(id)) $(id).textContent = row[key] || '-'; });
+    $('detailUploaderNip').textContent = row.Uploader_ID || '-';
+    $('detailUploaderNama').textContent = row.Uploader_Nama || '-';
+    $('detailUploaderUnitKerja').textContent = row.Unit_Kerja || '-';
+    $('detailUploaderSection')?.classList.toggle('hidden', row.Sumber !== 'PUBLIC');
+    $('detailModal')?.classList.add('open');
+  };
+  window.closeDetailModal = function() { $('detailModal')?.classList.remove('open'); };
+  window.cancelEditDetail = function() { $('detailEditForm')?.classList.remove('active'); };
+  window.startEditDetail = function() { alert('Edit metadata dapat dikembangkan dari pola backend yang sama. Demo publik ini memfokuskan upload, lihat, download, dan hapus.'); };
+  window.saveDetailEdit = function() {};
+  window.buildDetailEditSubkategori = function() {};
+
+  window.downloadByIndex = async function(index) {
+    const row = state.filtered[index];
+    if (!row) return;
+    await downloadFile(row.File_ID);
+  };
+  window.downloadCurrentDetailFile = async function() { if (state.currentDetail) await downloadFile(state.currentDetail.File_ID); };
+  async function downloadFile(fileId) {
+    try {
+      const payload = await callServer('getFilePayload', state.token, fileId);
+      const bytes = Uint8Array.from(atob(payload.base64), c => c.charCodeAt(0));
+      const blob = new Blob([bytes], {type:payload.mimeType || 'application/octet-stream'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = payload.name || 'dokumen'; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) { alert(e.message); }
+  }
+
+  window.deleteByIndex = async function(index) {
+    const row = state.filtered[index]; if (!row) return;
+    if (!confirm(`Hapus ${row.Nama_File || 'berkas ini'}?`)) return;
+    try { await callServer('deleteBerkas', state.token, row.ID_Berkas); await loadBankData(); } catch (e) { alert(e.message); }
+  };
+  window.deleteCurrentDetail = async function() {
+    if (!state.currentDetail) return;
+    if (!confirm(`Hapus ${state.currentDetail.Nama_File || 'berkas ini'}?`)) return;
+    try { await callServer('deleteBerkas', state.token, state.currentDetail.ID_Berkas); closeDetailModal(); await loadBankData(); } catch (e) { alert(e.message); }
+  };
+  window.closeDeleteModal = function() { $('deleteModal')?.classList.remove('open'); };
+  window.executeDelete = function() {};
+  window.closeMessageModal = function() { $('messageModal')?.classList.remove('open'); };
+
+  window.viewCurrentDetailFile = async function() {
+    if (!state.currentDetail) return;
+    const name = String(state.currentDetail.Nama_File || '');
+    if (!name.toLowerCase().endsWith('.pdf')) return downloadCurrentDetailFile();
+    try {
+      const payload = await callServer('getFilePayload', state.token, state.currentDetail.File_ID);
+      await openPdfPreview(payload);
+    } catch (e) { alert(e.message); }
+  };
+
+  async function loadPdfJs() {
+    if (state.pdfjs) return state.pdfjs;
+    state.pdfjs = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/legacy/build/pdf.min.mjs');
+    state.pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/legacy/build/pdf.worker.min.mjs';
+    return state.pdfjs;
+  }
+
+  async function openPdfPreview(payload) {
+    const modal = $('pdfPreviewModal');
+    modal?.classList.add('open');
+    modal?.setAttribute('aria-hidden','false');
+    $('pdfPreviewFileName').textContent = payload.name || 'PDF';
+    $('pdfPreviewLoading').classList.remove('hidden');
+    $('pdfPreviewBody').classList.add('hidden');
+    $('pdfPreviewError').classList.add('hidden');
+    try {
+      const pdfjs = await loadPdfJs();
+      const bytes = Uint8Array.from(atob(payload.base64), c => c.charCodeAt(0));
+      const pdf = await pdfjs.getDocument({data:bytes,isEvalSupported:false}).promise;
+      const wrap = $('pdfPreviewPages'); wrap.innerHTML = '';
+      for (let i=1;i<=pdf.numPages;i++) {
+        const page = await pdf.getPage(i);
+        const viewport = page.getViewport({scale:state.pdfScale});
+        const canvas = document.createElement('canvas');
+        canvas.width = viewport.width; canvas.height = viewport.height;
+        await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
+        wrap.appendChild(canvas);
+      }
+      $('pdfPreviewLoading').classList.add('hidden');
+      $('pdfPreviewBody').classList.remove('hidden');
+      updateZoomLabel();
+    } catch (e) {
+      $('pdfPreviewLoading').classList.add('hidden');
+      $('pdfPreviewError').textContent = e.message;
+      $('pdfPreviewError').classList.remove('hidden');
+    }
+  }
+  window.closePdfPreview = function() { $('pdfPreviewModal')?.classList.remove('open'); $('pdfPreviewModal')?.setAttribute('aria-hidden','true'); };
+  window.zoomPdfIn = function() { state.pdfScale = Math.min(2.2, state.pdfScale + .1); updateZoomLabel(); };
+  window.zoomPdfOut = function() { state.pdfScale = Math.max(.6, state.pdfScale - .1); updateZoomLabel(); };
+  window.resetPdfZoom = function() { state.pdfScale = 1.2; updateZoomLabel(); };
+  function updateZoomLabel() { if ($('pdfZoomLabel')) $('pdfZoomLabel').textContent = `${Math.round(state.pdfScale / 1.2 * 100)}%`; }
+
+  // ==========================================================
+  // DASHBOARD
+  // ==========================================================
+  window.loadDashboard = async function(yearArg) {
+    const year = yearArg !== undefined ? yearArg : ($('dashboardTahun')?.value || '');
+    $('dashboardLoading')?.classList.remove('hidden');
+    $('dashboardContent')?.classList.add('hidden');
+    try {
+      const data = await callServer('getDashboardData', state.token, year);
+      fillDashboardYear(data.years, year);
+      $('statTotalBerkas').textContent = data.total || 0;
+      $('statBidang001').textContent = data.bidang.BID001 || 0;
+      $('statBidang002').textContent = data.bidang.BID002 || 0;
+      $('statBidang003').textContent = data.bidang.BID003 || 0;
+      renderBidangChart(data);
+      renderDonutSummary(data);
+      renderMonthly(data);
+      renderBidangDetail(data);
+      renderTopCategories(data);
+      renderRecent(data.recent || []);
+      loadStorageSummary();
+      $('dashboardContent')?.classList.remove('hidden');
+      $('dashboardError')?.classList.add('hidden');
+    } catch (e) {
+      $('dashboardError').textContent = e.message;
+      $('dashboardError').classList.remove('hidden');
+    } finally { $('dashboardLoading')?.classList.add('hidden'); }
+  };
+
+  function fillDashboardYear(years, selected) {
+    const el = $('dashboardTahun'); if (!el) return;
+    el.innerHTML = '<option value="">Semua Tahun</option>' + (years || []).map(y => `<option value="${y}" ${y===selected?'selected':''}>${y}</option>`).join('');
+  }
+
+  function renderBidangChart(data) {
+    const max = Math.max(1, ...Object.values(data.bidang || {}));
+    $('dashboardBidangChart').innerHTML = state.master.bidang.map(item => {
+      const value = data.bidang[item.ID_Bidang] || 0;
+      return `<div style="padding:10px"><div style="display:flex;justify-content:space-between;font-size:12px"><span>${esc(item.Nama_Bidang)}</span><strong>${value}</strong></div><div style="height:10px;background:#eef1f7;border-radius:999px;margin-top:7px;overflow:hidden"><div style="height:100%;width:${value/max*100}%;background:#435ebe;border-radius:999px"></div></div></div>`;
+    }).join('');
+  }
+  function renderDonutSummary(data) {
+    $('dashboardDonutChart').innerHTML = state.master.bidang.map(item => {
+      const value = data.bidang[item.ID_Bidang] || 0;
+      const pct = data.total ? Math.round(value/data.total*100) : 0;
+      return `<div style="padding:10px 14px;display:flex;justify-content:space-between;border-bottom:1px solid #e7ebf3"><span>${esc(item.Nama_Bidang)}</span><strong>${pct}%</strong></div>`;
+    }).join('');
+  }
+  function renderMonthly(data) {
+    const labels = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    $('dashboardMonthlyChart').innerHTML = `<div style="display:grid;grid-template-columns:repeat(12,minmax(42px,1fr));gap:7px;align-items:end;min-width:650px;overflow:auto;padding:20px">${labels.map((label,i) => { const month=data.monthly[i+1]||{}; const total=Object.values(month).reduce((a,b)=>a+Number(b||0),0); return `<div style="text-align:center"><div style="height:${Math.max(8,total*8)}px;max-height:180px;background:#435ebe;border-radius:8px 8px 2px 2px"></div><small>${label}</small><div style="font-size:10px;color:#718096">${total}</div></div>`; }).join('')}</div>`;
+  }
+  function renderBidangDetail(data) {
+    $('dashboardBidangDetail').innerHTML = state.master.bidang.map((b,idx) => {
+      const cats = state.master.kategori.filter(k => k.ID_Bidang===b.ID_Bidang);
+      return `<div class="v18-bidang-card" style="--accent:${['#21b978','#f5a623','#7667e8'][idx]}"><div class="v18-bidang-card-head"><div class="v18-bidang-name">${esc(b.Nama_Bidang)}</div><div class="v18-bidang-total">${data.bidang[b.ID_Bidang]||0}</div></div><div class="v18-category-list">${cats.map(c => `<div class="v18-category-row"><div class="v18-category-main" onclick="openDashboardCategory('${c.ID_Kategori}')"><span class="v18-category-name">${esc(c.Nama_Kategori)}</span><span class="v18-category-count">${data.kategori[c.ID_Kategori]||0}</span></div></div>`).join('')}</div></div>`;
+    }).join('');
+  }
+  function renderTopCategories(data) {
+    const rows = state.master.kategori.map(k => ({...k,count:data.kategori[k.ID_Kategori]||0})).sort((a,b)=>b.count-a.count).slice(0,6);
+    $('dashboardTopKategori').innerHTML = rows.map((r,i) => `<div class="v18-rank-row" onclick="openDashboardCategory('${r.ID_Kategori}')"><span class="v18-rank-no">${i+1}</span><div class="v18-rank-text"><div class="v18-rank-name">${esc(r.Nama_Kategori)}</div></div><span class="v18-rank-value">${r.count}</span></div>`).join('');
+  }
+  function renderRecent(rows) {
+    $('dashboardRecentActivity').innerHTML = rows.length ? rows.map((r,i) => `<div class="v18-activity-row" onclick="openRecentDetail(${i})"><span class="v18-file-icon"><i class="bi bi-file-earmark-text"></i></span><div class="v18-activity-text"><div class="v18-activity-title">${esc(r.Judul_Berkas)}</div><div class="v18-activity-meta">${esc(r.Nama_Bidang)} · ${esc(r.Nama_Kategori)}</div></div><span class="v18-activity-time">${esc(r.Tanggal_Berkas)}</span></div>`).join('') : '<div class="v18-empty">Belum ada aktivitas.</div>';
+    state.dashboardRecent = rows;
+  }
+  window.openRecentDetail = function(i) { const row=state.dashboardRecent?.[i]; if (!row) return; state.filtered=[row]; openDetailByIndex(0); };
+  window.openDashboardBidang = function(id) { showPage('bankdata').then(()=>{ $('filterBidang').value=id; onBidangFilterChange(); }); };
+  window.openDashboardCategory = function(id) { const cat=state.master.kategori.find(c=>c.ID_Kategori===id); showPage('bankdata').then(()=>{ if(cat){ $('filterBidang').value=cat.ID_Bidang; onBidangFilterChange(); $('filterKategori').value=id; onKategoriChange(); } }); };
+  window.handleDashboardNavKey = function(event,type,id) { if (event.key==='Enter'||event.key===' ') { event.preventDefault(); type==='bidang'?openDashboardBidang(id):openDashboardCategory(id); } };
+  window.applyDashboardMonthFilter = function() { /* visual filter can be extended; data already grouped per month */ };
+  window.resetDashboardMonthFilter = function() { if($('dashboardBulanMulai')) $('dashboardBulanMulai').value='1'; if($('dashboardBulanSampai')) $('dashboardBulanSampai').value='12'; };
+  async function loadStorageSummary() {
+    try {
+      const s = await callServer('getDashboardStorageSummary', state.token);
+      $('dashboardStorageValue').textContent = formatBytes(s.totalBytes || 0);
+      $('dashboardStorageLabel').textContent = `${s.totalFiles || 0} file tersedia di Google Drive`;
+      $('dashboardStorageMeta').innerHTML = `<strong>${s.totalRows || 0}</strong> baris metadata${s.unavailableFiles?` · ${s.unavailableFiles} file tidak tersedia`:''}`;
+    } catch (e) { $('dashboardStorageValue').textContent='-'; $('dashboardStorageLabel').textContent=e.message; }
+  }
+  function formatBytes(bytes) { const units=['B','KB','MB','GB','TB']; let value=Number(bytes)||0,i=0; while(value>=1024&&i<units.length-1){value/=1024;i++;} return `${value.toFixed(i?2:0)} ${units[i]}`; }
+
+  // ==========================================================
+  // HISTORY
+  // ==========================================================
+  async function loadHistory() {
+    $('historyLoading').style.display='block';
+    try { state.history = await callServer('getHistory', state.token); filterHistory(); }
+    catch(e){ $('historyTableContainer').innerHTML=`<div class="v18-error">${esc(e.message)}</div>`; }
+    finally{ $('historyLoading').style.display='none'; }
+  }
+  window.filterHistory = function() {
+    const q=($('historySearch')?.value||'').toLowerCase(); const action=$('historyActionFilter')?.value||''; const role=$('historyRoleFilter')?.value||'';
+    const rows=state.history.filter(r=>{const hay=[r.Nama,r.User_ID,r.Unit_Kerja,r.Judul_Berkas,r.Nama_File,r.Keterangan].join(' ').toLowerCase();return(!q||hay.includes(q))&&(!action||r.Aksi===action)&&(!role||r.Role===role)});
+    $('historyTableContainer').innerHTML = rows.length ? `<div style="overflow:auto"><table><thead><tr><th>Waktu</th><th>Aksi</th><th>Role</th><th>Nama</th><th>ID</th><th>Unit</th><th>Berkas</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.Waktu)}</td><td>${esc(r.Aksi)}</td><td>${esc(r.Role)}</td><td>${esc(r.Nama)}</td><td>${esc(r.User_ID)}</td><td>${esc(r.Unit_Kerja)}</td><td>${esc(r.Judul_Berkas||r.Nama_File)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="v18-empty">Belum ada history.</div>';
+  };
+
+  // ==========================================================
+  // RESET PASSWORD DEMO
+  // ==========================================================
+  window.showForgotPasswordDemo = async function() {
+    const userId = prompt('Masukkan ID Pengguna:'); if (!userId) return;
+    try {
+      await callServer('requestPasswordResetOtp', userId);
+      const otp = prompt('OTP telah dikirim. Masukkan 6 digit OTP:'); if (!otp) return;
+      const password = prompt('Masukkan password baru (minimal 8 karakter):'); if (!password) return;
+      const result = await callServer('resetPasswordWithOtp', userId, otp, password);
+      alert(result.message || 'Password berhasil diperbarui.');
+    } catch (e) { alert(e.message); }
+  };
+
+  function startClock() {
+    const render=()=>{const now=new Date(); const date=$('dashboardRealtimeDate'),time=$('dashboardRealtimeTime'); if(date)date.textContent=new Intl.DateTimeFormat('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric',timeZone:'Asia/Jakarta'}).format(now); if(time)time.textContent=new Intl.DateTimeFormat('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:'Asia/Jakarta'}).format(now)+' WIB';};
+    render(); setInterval(render,1000);
+  }
+
+  document.addEventListener('keydown', event => {
+    if (event.key==='Enter' && !$('loginPage')?.classList.contains('hidden') && document.activeElement?.id==='loginPassword') submitLogin();
+    if (event.key==='Escape') { closeDetailModal(); closePdfPreview(); }
+  });
+
+  startClock();
+  restoreSession();
+</script>
