@@ -1,0 +1,7 @@
+ID_Kategori,Nama_Kategori,ID_Bidang
+KATADM001,Dokumen Masuk,BID001
+KATADM002,Dokumen Keluar,BID001
+KATKEU001,Dokumen Anggaran,BID002
+KATKEU002,Laporan Keuangan,BID002
+KATOPS001,Pengajuan,BID003
+KATOPS002,Laporan Operasional,BID003
