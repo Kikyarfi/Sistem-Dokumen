@@ -1,126 +1,180 @@
-# Sistem Dokumen
+# 📁 Sistem Dokumen
 
-![Google Apps Script](https://img.shields.io/badge/Google%20Apps%20Script-Web%20App-4285F4?logo=googleappsscript&logoColor=white)
-![Google Sheets](https://img.shields.io/badge/Google%20Sheets-Database-34A853?logo=googlesheets&logoColor=white)
-![Google Drive](https://img.shields.io/badge/Google%20Drive-Storage-4285F4?logo=googledrive&logoColor=white)
-![Security](https://img.shields.io/badge/Security-OWASP%20ZAP-success)
+<p align="center">
+  <img src="./docs/images/cover-dashboard.png" alt="Sistem Dokumen Cover" width="100%" />
+</p>
 
-**Sistem Dokumen** adalah web-based document management system berbasis Google Apps Script, Google Sheets, dan Google Drive. Project ini menampilkan alur pengelolaan dokumen, autentikasi, role-based access control, dashboard, upload/download, audit history, reset password berbasis OTP, dan preview PDF.
+<p align="center">
+  <b>Web-based Document Management System</b><br>
+  A portfolio/demo project for managing internal documents, file archiving, public upload, role-based access, and PDF preview.
+</p>
 
-> **Portfolio / Demo Edition**  
-> Repository ini adalah versi publik yang dibuat ulang dengan identitas, master data, akun, dan konfigurasi generik. Repository ini **bukan mirror atau backup sistem internal organisasi**.
-
-## Fitur
-
-- Login menggunakan ID Pengguna dan password
-- Role `ADMIN` dan `USER`
-- Session dengan idle timeout 20 menit
-- Rate limiting percobaan login
-- Reset password menggunakan OTP melalui email
-- Dashboard statistik dokumen dan kapasitas file
-- Bank Data dengan filter dan pencarian
-- Upload dokumen PDF, Word, Excel, dan PowerPoint
-- Public upload flow
-- Preview PDF menggunakan PDF.js
-- Download dokumen dengan nama file asli
-- History / audit trail
-- Light/Dark mode
-- Validasi format dan ukuran file maksimal 10 MB
-- `LockService` untuk operasi tulis
-- Konfigurasi rahasia menggunakan Apps Script Script Properties
-
-## Teknologi
-
-- Google Apps Script
-- Google Sheets
-- Google Drive
-- HTML, CSS, JavaScript
-- Bootstrap Icons
-- PDF.js `4.10.38` legacy build
-- OWASP ZAP untuk passive security testing
-
-## Struktur Project
-
-```text
-src/
-├── Code.gs
-├── Bidang.gs
-├── index.html
-├── Styles.html
-├── Landing.html
-├── PublicUpload.html
-├── Login.html
-├── AppShellStart.html
-├── Dashboard.html
-├── BankData.html
-├── AdminUpload.html
-├── History.html
-├── AppShellEnd.html
-├── Modals.html
-└── Scripts.html
-
-demo-data/
-├── USERS.example.csv
-├── BIDANG.example.csv
-├── KATEGORI.example.csv
-└── SUBKATEGORI.example.csv
-```
-
-## Master Data Demo
-
-Konteks internal telah diganti menjadi master data generik:
-
-- Administrasi
-- Keuangan
-- Operasional
-
-Contoh akun menggunakan domain `example.com` dan identifier dummy.
-
-## Menjalankan Demo di Google Apps Script
-
-1. Buat project Google Apps Script baru.
-2. Buat file dengan nama yang sama seperti pada folder `src/` dan salin source masing-masing file.
-3. Pastikan `Code.gs` dan `Bidang.gs` disimpan sebagai file script, sedangkan file lainnya sebagai HTML.
-4. Jalankan fungsi `setupDemoDatabase()` satu kali dari editor Apps Script. Fungsi ini membuat database Google Sheets demo, folder Google Drive demo, dan Script Properties yang diperlukan.
-5. Tambahkan akun dummy pada sheet `USERS`. Struktur contoh tersedia di `demo-data/USERS.example.csv`.
-6. Atur password akun menggunakan fungsi `setDemoUserPassword('ID_PENGGUNA', 'password-baru')`.
-7. Deploy sebagai Web App sesuai kebijakan akun Google yang digunakan.
-
-> Jangan menyalin nilai `SPREADSHEET_ID`, `ROOT_FOLDER_ID`, `APP_SECRET`, deployment URL, atau data dari environment lain ke repository publik.
-
-## Security
-
-Passive security testing dilakukan menggunakan OWASP ZAP. Pada pengembangan awal, PDF.js versi lama terdeteksi memiliki kerentanan. Versi demo ini menggunakan PDF.js `4.10.38` legacy build dan memuat dokumen dengan `isEvalSupported: false`.
-
-Alert tertentu pada deployment Google Apps Script dapat berasal dari layer Google Apps Script, Google Fonts, atau Google CSP dan tidak selalu berada dalam kontrol source aplikasi.
-
-Lihat juga [`SECURITY.md`](SECURITY.md) dan [`SANITIZATION_REPORT.txt`](SANITIZATION_REPORT.txt).
-
-## Privasi Repository
-
-Repository publik ini tidak memuat:
-
-- nama atau logo instansi
-- struktur unit internal organisasi
-- data pegawai asli
-- ID/NIP asli
-- email internal
-- password asli
-- dokumen organisasi
-- nomor dokumen asli
-- tanda tangan
-- API key / token
-- Spreadsheet ID produksi
-- folder ID produksi
-- deployment URL produksi
-
-## Author
-
-**Kiky**  
-GitHub: [@kikyarfi](https://github.com/kikyarfi)
-
-Identitas pembuat juga ditampilkan pada sidebar aplikasi, tepat di atas badge role `ADMIN` / `USER`, serta pada footer aplikasi.
+<p align="center">
+  <a href="https://github.com/Kikyarfi/Sistem-Dokumen"><img src="https://img.shields.io/badge/repository-public-blue?style=for-the-badge&logo=github" alt="Repository"></a>
+  <img src="https://img.shields.io/badge/platform-Google%20Apps%20Script-orange?style=for-the-badge&logo=google" alt="Platform">
+  <img src="https://img.shields.io/badge/status-portfolio%20demo-success?style=for-the-badge" alt="Status">
+  <img src="https://img.shields.io/badge/license-personal-lightgrey?style=for-the-badge" alt="License">
+</p>
 
 ---
 
-> **Sistem Dokumen — Portfolio / Demo Edition**
+## ✨ About This Project
+
+**Sistem Dokumen** is a web-based document management and correspondence system designed to simplify internal file administration workflows.
+
+This project was developed as a **portfolio/demo edition**, adapted from a real workflow use case and sanitized for public release.  
+All organization-specific names, internal configurations, and sensitive data have been removed or replaced with generic placeholders.
+
+### 🎯 Main Goals
+- Manage document archive in a structured way
+- Support **public file upload** without requiring login
+- Provide **role-based access** for Admin and User
+- Display document statistics through a simple dashboard
+- Enable secure **PDF preview**
+- Support **password reset flow with OTP verification**
+
+---
+
+## 🛡️ Portfolio / Demo Notice
+
+> This repository is a **demonstration version** for portfolio purposes.  
+> It does **not** contain real internal data, confidential files, employee identities, official organization branding, or production configuration.
+
+Safe for public showcase:
+- ✅ source code structure
+- ✅ UI/UX implementation
+- ✅ role-based logic
+- ✅ dashboard, upload, preview, and authentication flow
+- ✅ dummy data / demo setup
+
+Removed or sanitized:
+- ❌ internal organization identity
+- ❌ real employee data / NIP
+- ❌ real document files
+- ❌ internal emails / access configuration
+- ❌ production deployment secrets
+
+---
+
+## 🚀 Key Features
+
+### 1. 🔐 Authentication & Role Management
+- Login using **NIP**
+- Role-based access:
+  - **Admin** → full access
+  - **User** → dashboard + document viewing only
+- Forgot password with:
+  - NIP validation
+  - OTP verification
+  - reset password link via email
+
+### 2. 📤 Public Upload
+- Visitors can upload files without login
+- Public uploader fills identity form:
+  - NIP
+  - Name
+  - Unit Kerja
+- Upload history is still traceable by admin
+
+### 3. 📂 Document Management
+- Upload, manage, and organize documents
+- Structured by:
+  - **Bidang**
+  - **Kategori**
+  - **Subkategori**
+- Document detail modal
+- Download support
+- Safer PDF preview flow
+
+### 4. 📊 Dashboard
+- Total document statistics
+- Summary by bidang
+- Monthly trends
+- Distribution charts
+- Recent activity
+- Real-time day/date/time
+- Total storage usage
+
+### 5. 📄 PDF Preview
+- PDF preview inside the system
+- Zoom in / zoom out
+- Safer preview approach for better control
+- Cleaner viewing experience for users
+
+### 6. 🧾 History & Activity Tracking
+- Activity log for uploads and system actions
+- Track uploader information
+- Role, NIP, Unit Kerja, and activity details
+- Useful for admin monitoring
+
+---
+
+## 🖼️ Screenshots
+
+> Save your screenshots inside: `docs/images/`
+
+### Dashboard
+<p align="center">
+  <img src="./docs/images/dashboard-overview.png" alt="Dashboard Overview" width="90%" />
+</p>
+
+### Login Page
+<p align="center">
+  <img src="./docs/images/login-page.png" alt="Login Page" width="85%" />
+</p>
+
+### Public Upload
+<p align="center">
+  <img src="./docs/images/public-upload.png" alt="Public Upload" width="85%" />
+</p>
+
+### Bank Data / Document List
+<p align="center">
+  <img src="./docs/images/bank-data.png" alt="Bank Data" width="90%" />
+</p>
+
+### PDF Preview
+<p align="center">
+  <img src="./docs/images/pdf-preview.png" alt="PDF Preview" width="90%" />
+</p>
+
+### History / Activity Log
+<p align="center">
+  <img src="./docs/images/history-page.png" alt="History Page" width="90%" />
+</p>
+
+---
+
+## 🧱 Project Structure
+
+```bash
+Sistem-Dokumen/
+├── src/
+│   ├── Code.gs
+│   ├── Bidang.gs
+│   ├── index.html
+│   ├── Styles.html
+│   ├── Scripts.html
+│   ├── Dashboard.html
+│   ├── BankData.html
+│   ├── PublicUpload.html
+│   ├── AdminUpload.html
+│   ├── History.html
+│   └── Modals.html
+├── demo-data/
+│   ├── sample-users.csv
+│   ├── sample-documents.csv
+│   └── sample-history.csv
+├── docs/
+│   └── images/
+│       ├── cover-dashboard.png
+│       ├── dashboard-overview.png
+│       ├── login-page.png
+│       ├── public-upload.png
+│       ├── bank-data.png
+│       ├── pdf-preview.png
+│       └── history-page.png
+├── README.md
+├── SECURITY.md
+├── PORTFOLIO_NOTICE.md
+└── GITHUB_PUSH_CHECKLIST.md
