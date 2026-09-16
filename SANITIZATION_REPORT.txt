@@ -5,9 +5,10 @@ Institutional identity scan results:
 PASS - no blocked institutional identity terms found.
 
 Additional checks:
-- No production deployment URL should be committed.
+- No production deployment URL is committed.
 - No production Spreadsheet ID or APP_SECRET is included.
 - Demo accounts use example.com only.
 - Demo master data is generic.
+- No real employee identifiers or production documents are included.
 
-Note: internal schema identifiers such as `NIP` may remain in backend code for compatibility, but UI/demo data uses generic identity wording and dummy values.
+Note: this repository is a portfolio/demo implementation and must not be treated as a mirror or backup of an internal organizational system.
