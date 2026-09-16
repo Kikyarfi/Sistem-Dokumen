@@ -1,0 +1,38 @@
+<section id="history" class="page">
+      <div class="page-title">
+        <div>
+          <h1>History</h1>
+          <div class="page-subtitle">
+            Riwayat aktivitas Admin dan upload berkas dari halaman publik
+          </div>
+        </div>
+      </div>
+
+      <div class="history-card">
+
+        <div class="history-toolbar">
+          <input
+            id="historySearch"
+            type="text"
+            placeholder="Cari nama, ID Pengguna, unit kerja, bidang, judul berkas, nomor berkas, file..."
+            oninput="filterHistory()"
+          >
+
+          <select id="historyActionFilter" onchange="filterHistory()">
+            <option value="">Semua Aktivitas</option>
+            <option value="UPLOAD">Upload</option>
+            <option value="HAPUS">Hapus</option>
+          </select>
+
+          <select id="historyRoleFilter" onchange="filterHistory()">
+            <option value="">Semua Role</option>
+            <option value="ADMIN">Admin</option>
+            <option value="USER">User</option>
+            <option value="PUBLIC">Publik</option>
+          </select>
+        </div>
+
+        <div id="historyLoading">Memuat history...</div>
+        <div id="historyTableContainer"></div>
+      </div>
+    </section>
