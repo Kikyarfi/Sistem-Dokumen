@@ -1,0 +1,35 @@
+<div id="mainApp" class="hidden">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-mark">SD</div>
+      <div>
+        <strong>Sistem Dokumen</strong>
+        <small>Portfolio Edition</small>
+      </div>
+    </div>
+
+    <nav class="sidebar-menu">
+      <button id="navDashboard" class="active" type="button" onclick="showPage('dashboard')"><i class="bi bi-grid-1x2-fill"></i> Dashboard</button>
+      <button id="navBankdata" type="button" onclick="showPage('bankdata')"><i class="bi bi-archive-fill"></i> Bank Data</button>
+      <button id="navUpload" data-admin-only="true" type="button" onclick="showPage('upload')"><i class="bi bi-cloud-arrow-up-fill"></i> Upload Data</button>
+      <button id="navHistory" data-admin-only="true" type="button" onclick="showPage('history')"><i class="bi bi-clock-history"></i> History</button>
+      <button type="button" onclick="toggleTheme()"><i class="bi bi-circle-half"></i> Light / Dark</button>
+    </nav>
+
+    <div class="sidebar-user">
+      <div id="sidebarUserName" class="sidebar-user-name">-</div>
+      <div id="sidebarUserEmail" class="sidebar-user-email">-</div>
+
+      <div class="sidebar-author">
+        <a href="https://github.com/kikyarfi" target="_blank" rel="noopener noreferrer" title="GitHub @kikyarfi">
+          <i class="bi bi-github"></i>
+          <span>Dibuat oleh @kikyarfi</span>
+        </a>
+      </div>
+
+      <div id="sidebarRole" class="role-badge">USER</div>
+      <button class="logout-button" type="button" onclick="logoutApp()"><i class="bi bi-box-arrow-left"></i> Keluar</button>
+    </div>
+  </aside>
+
+  <main class="main">
