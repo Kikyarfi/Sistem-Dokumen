@@ -1,0 +1,130 @@
+<section id="bankdata" class="page">
+      <div class="card">
+        <h1>Bank Data</h1>
+
+        <div id="bankFilterToolbar" class="toolbar">
+
+          <input
+            id="searchInput"
+            type="text"
+            placeholder="Cari nomor, judul, atau nama file..."
+            oninput="filterData()"
+          >
+
+          <select
+            id="filterBidang"
+            onchange="onBidangFilterChange()"
+          >
+            <option value="">Semua Bidang</option>
+          </select>
+
+          <select id="filterKategori" onchange="onKategoriChange()">
+            <option value="">Semua Kategori</option>
+          </select>
+
+          <select id="filterSubkategori" onchange="filterData()">
+            <option value="">Semua Subkategori</option>
+          </select>
+
+          <select id="filterTahun" onchange="filterData()">
+            <option value="">Semua Tahun</option>
+          </select>
+
+          <select id="filterBulan" onchange="filterData()">
+            <option value="">Semua Bulan</option>
+          </select>
+
+        </div>
+
+        <div class="bank-summary">
+          <div id="resultCount" class="result-count">0 berkas ditemukan</div>
+
+          <div class="bank-summary-actions">
+
+            <!-- Default tampilan Bank Data = List -->
+            <div
+              class="bank-view-toggle"
+              role="group"
+              aria-label="Pilihan tampilan Bank Data"
+            >
+              <button
+                id="bankListViewButton"
+                class="bank-view-btn active"
+                type="button"
+                onclick="setBankView('list')"
+                title="Tampilan List"
+                aria-label="Tampilan List"
+              >
+                <i class="bi bi-list-ul"></i>
+              </button>
+
+              <button
+                id="bankGalleryViewButton"
+                class="bank-view-btn"
+                type="button"
+                onclick="setBankView('gallery')"
+                title="Tampilan Gallery"
+                aria-label="Tampilan Gallery"
+              >
+                <i class="bi bi-grid-fill"></i>
+              </button>
+            </div>
+
+            <button
+              class="btn-reset"
+              type="button"
+              onclick="resetFilters()"
+            >
+              Reset Filter
+            </button>
+
+          </div>
+        </div>
+
+        <div id="loading">
+          Memuat data...
+        </div>
+
+        <!-- Tampilan LIST (default) -->
+        <div
+          id="bankListContainer"
+          class="bank-list-container"
+        >
+          <div id="tableContainer"></div>
+          <div
+            id="paginationContainer"
+            class="pagination"
+          ></div>
+        </div>
+
+        <!-- Tampilan GALLERY / FOLDER -->
+        <div
+          id="bankGalleryContainer"
+          class="gallery-container"
+        >
+          <div class="gallery-toolbar">
+
+            <div
+              id="galleryBreadcrumb"
+              class="gallery-breadcrumb"
+            ></div>
+
+            <button
+              id="galleryBackButton"
+              class="gallery-back-btn hidden"
+              type="button"
+              onclick="galleryGoBack()"
+            >
+              <i class="bi bi-arrow-left me-1"></i>
+              Kembali
+            </button>
+
+          </div>
+
+          <div
+            id="galleryGrid"
+            class="gallery-grid"
+          ></div>
+        </div>
+      </div>
+    </section>
