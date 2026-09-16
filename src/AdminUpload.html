@@ -1,0 +1,107 @@
+<section id="upload" class="page">
+      <div class="page-title">
+        <div>
+          <h1>Upload Data</h1>
+          <div class="page-subtitle">
+            Tambahkan berkas baru ke Google Drive dan Google Sheets
+          </div>
+        </div>
+      </div>
+
+      <div class="upload-card">
+
+        <div class="upload-grid">
+
+          <div class="upload-field full">
+            <label for="uploadBidang">Bidang</label>
+            <select id="uploadBidang" onchange="onUploadBidangChange()">
+              <option value="">Pilih Bidang</option>
+            </select>
+          </div>
+
+          <div class="upload-field">
+            <label for="uploadKategori">Kategori</label>
+            <select id="uploadKategori" onchange="onUploadKategoriChange()" disabled>
+              <option value="">Pilih Bidang terlebih dahulu</option>
+            </select>
+          </div>
+
+          <div class="upload-field">
+            <label for="uploadSubkategori">Subkategori</label>
+            <select id="uploadSubkategori" disabled>
+              <option value="">Pilih Subkategori</option>
+            </select>
+          </div>
+
+          <div class="upload-field">
+            <label for="uploadNomor">Nomor Berkas</label>
+            <input
+              id="uploadNomor"
+              type="text"
+              placeholder="Contoh: 001"
+            >
+          </div>
+
+          <div class="upload-field">
+            <label for="uploadTanggal">Tanggal Berkas</label>
+            <input
+              id="uploadTanggal"
+              type="date"
+            >
+          </div>
+
+          <div class="upload-field full">
+            <label for="uploadJudul">Judul Berkas</label>
+            <input
+              id="uploadJudul"
+              type="text"
+              placeholder="Masukkan judul berkas"
+            >
+          </div>
+
+          <div class="upload-field full">
+            <label for="uploadKeterangan">Keterangan</label>
+            <textarea
+              id="uploadKeterangan"
+              placeholder="Keterangan tambahan (opsional)"
+            ></textarea>
+          </div>
+
+          <div class="upload-field full">
+            <label for="uploadFile">File</label>
+            <input
+              id="uploadFile"
+              type="file"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+            >
+            <div class="upload-note">
+              Format: PDF, Word, Excel, PowerPoint. Maksimal 10 MB.
+              Nama file asli akan dipertahankan.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="upload-actions">
+          <button
+            id="uploadSubmitButton"
+            class="upload-submit"
+            type="button"
+            onclick="submitUpload()"
+          >
+            Upload Berkas
+          </button>
+
+          <button
+            class="upload-clear"
+            type="button"
+            onclick="resetUploadForm()"
+          >
+            Reset
+          </button>
+        </div>
+
+        <div id="uploadMessage" class="upload-message"></div>
+
+      </div>
+    </section>
