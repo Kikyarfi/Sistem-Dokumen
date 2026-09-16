@@ -1,0 +1,3 @@
+ID_User,NIP,Nama,Email,Password,Role,Status
+USR001,100000001,Demo Admin,admin@example.com,HASH:<DEMO_HASH>,ADMIN,AKTIF
+USR002,100000002,Demo User,user@example.com,HASH:<DEMO_HASH>,USER,AKTIF
