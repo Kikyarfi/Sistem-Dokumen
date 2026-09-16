@@ -1,0 +1,481 @@
+<!-- ============================
+     DETAIL BERKAS MODAL
+============================= -->
+
+<div
+  id="detailModal"
+  class="custom-modal-overlay"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="detailModalTitle"
+>
+  <div class="detail-modal-card">
+
+    <div class="detail-modal-header">
+
+      <div>
+        <h3
+          id="detailModalTitle"
+          class="detail-modal-title"
+        >
+          Detail Berkas
+        </h3>
+
+        <div class="detail-modal-subtitle">
+          Informasi lengkap berkas yang tersimpan di sistem.
+        </div>
+      </div>
+
+      <button
+        class="detail-close-btn"
+        type="button"
+        onclick="closeDetailModal()"
+        aria-label="Tutup"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+
+    </div>
+
+
+    <!-- =========================
+         MODE DETAIL / VIEW
+    ========================== -->
+    <div
+      id="detailViewSection"
+      class="detail-view-section"
+    >
+
+      <div class="detail-grid">
+
+        <div class="detail-item full">
+          <div class="detail-label">Bidang</div>
+          <div id="detailBidang" class="detail-value">-</div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-label">Kategori</div>
+          <div id="detailKategori" class="detail-value">-</div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-label">Subkategori</div>
+          <div id="detailSubkategori" class="detail-value">-</div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-label">Nomor Berkas</div>
+          <div id="detailNomor" class="detail-value">-</div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-label">Tanggal Berkas</div>
+          <div id="detailTanggal" class="detail-value">-</div>
+        </div>
+
+        <div class="detail-item full">
+          <div class="detail-label">Judul Berkas</div>
+          <div id="detailJudul" class="detail-value">-</div>
+        </div>
+
+        <div class="detail-item full">
+          <div class="detail-label">Keterangan</div>
+          <div id="detailKeterangan" class="detail-value">-</div>
+        </div>
+
+        <div
+          id="detailUploaderSection"
+          class="detail-item full hidden"
+        >
+          <div class="detail-label">
+            Identitas Pengunggah (Upload Publik)
+          </div>
+
+          <div class="detail-grid" style="margin-top:14px;">
+            <div class="detail-item">
+              <div class="detail-label">ID Pengguna</div>
+              <div id="detailUploaderNip" class="detail-value">-</div>
+            </div>
+
+            <div class="detail-item">
+              <div class="detail-label">Nama</div>
+              <div id="detailUploaderNama" class="detail-value">-</div>
+            </div>
+
+            <div class="detail-item full">
+              <div class="detail-label">Unit Kerja</div>
+              <div id="detailUploaderUnitKerja" class="detail-value">-</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-item full">
+          <div class="detail-label">File</div>
+
+          <div class="detail-file-row">
+            <div
+              id="detailFileName"
+              class="detail-value detail-file-name"
+            >
+              -
+            </div>
+
+            <button
+              id="detailViewFileButton"
+              class="detail-file-view-btn"
+              type="button"
+              onclick="viewCurrentDetailFile(this)"
+            >
+              <i class="bi bi-eye me-1"></i>
+              Lihat File
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+
+      <div class="detail-actions">
+
+        <button
+          id="detailEditButton" data-admin-only="true"
+          class="detail-action-btn edit"
+          type="button"
+          onclick="startEditDetail(this)"
+        >
+          <i class="bi bi-pencil-square me-1"></i>
+          Edit
+        </button>
+
+        <button
+          id="detailDownloadButton"
+          class="detail-action-btn download"
+          type="button"
+          onclick="downloadCurrentDetailFile(this)"
+        >
+          <i class="bi bi-download me-1"></i>
+          Download
+        </button>
+
+        <button
+          id="detailDeleteButton" data-admin-only="true"
+          class="detail-action-btn delete"
+          type="button"
+          onclick="deleteCurrentDetail(this)"
+        >
+          <i class="bi bi-trash3 me-1"></i>
+          Hapus
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- =========================
+         MODE EDIT
+    ========================== -->
+    <div
+      id="detailEditForm"
+      class="detail-edit-form"
+    >
+
+      <div class="detail-edit-grid">
+
+        <div class="detail-edit-field">
+          <label for="detailEditKategori">
+            Kategori
+          </label>
+
+          <select
+            id="detailEditKategori"
+            onchange="buildDetailEditSubkategori(this.value)"
+          >
+          </select>
+        </div>
+
+        <div class="detail-edit-field">
+          <label for="detailEditSubkategori">
+            Subkategori
+          </label>
+
+          <select id="detailEditSubkategori">
+          </select>
+        </div>
+
+        <div class="detail-edit-field">
+          <label for="detailEditNomor">
+            Nomor Berkas
+          </label>
+
+          <input
+            id="detailEditNomor"
+            type="text"
+          >
+        </div>
+
+        <div class="detail-edit-field">
+          <label for="detailEditTanggal">
+            Tanggal Berkas
+          </label>
+
+          <input
+            id="detailEditTanggal"
+            type="date"
+          >
+        </div>
+
+        <div class="detail-edit-field full">
+          <label for="detailEditJudul">
+            Judul Berkas
+          </label>
+
+          <input
+            id="detailEditJudul"
+            type="text"
+          >
+        </div>
+
+        <div class="detail-edit-field full">
+          <label for="detailEditKeterangan">
+            Keterangan
+          </label>
+
+          <textarea
+            id="detailEditKeterangan"
+          ></textarea>
+        </div>
+
+        <div class="detail-edit-field full">
+          <label for="detailEditFile">
+            Ganti File
+          </label>
+
+          <input
+            id="detailEditFile"
+            type="file"
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+          >
+
+          <div class="detail-edit-note">
+            Kosongkan jika tidak ingin mengganti file lama.
+          </div>
+        </div>
+
+      </div>
+
+
+      <div class="detail-actions">
+
+        <button
+          class="detail-action-btn edit"
+          type="button"
+          onclick="cancelEditDetail()"
+        >
+          Batal
+        </button>
+
+        <button
+          id="detailSaveButton"
+          class="detail-action-btn download"
+          type="button"
+          onclick="saveDetailEdit()"
+        >
+          Simpan Perubahan
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================
+     CUSTOM DELETE MODAL
+============================= -->
+
+<div
+  id="deleteModal"
+  class="custom-modal-overlay"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="deleteModalTitle"
+>
+  <div class="custom-modal-card">
+
+    <div class="custom-modal-icon danger">
+      <i class="bi bi-trash3-fill"></i>
+    </div>
+
+    <h3
+      id="deleteModalTitle"
+      class="custom-modal-title"
+    >
+      Hapus Berkas?
+    </h3>
+
+    <p class="custom-modal-text">
+      Apakah Anda yakin ingin menghapus
+      <span
+        id="deleteModalFileName"
+        class="custom-modal-file"
+      >
+        berkas ini
+      </span>
+    </p>
+
+    <div class="custom-modal-warning">
+      File di Database akan dihapus.
+    </div>
+
+    <div class="custom-modal-actions">
+
+      <button
+        id="deleteCancelButton"
+        class="custom-modal-btn secondary"
+        type="button"
+        onclick="closeDeleteModal()"
+      >
+        Batal
+      </button>
+
+      <button
+        id="deleteConfirmButton"
+        class="custom-modal-btn danger"
+        type="button"
+        onclick="executeDelete()"
+      >
+        Hapus
+      </button>
+
+    </div>
+
+  </div>
+</div>
+
+
+<div
+  id="messageModal"
+  class="custom-modal-overlay"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="messageModalTitle"
+>
+  <div class="custom-modal-card">
+
+    <div
+      id="messageModalIcon"
+      class="custom-modal-icon success"
+    >
+      <i
+        id="messageModalIconElement"
+        class="bi bi-check-lg"
+      ></i>
+    </div>
+
+    <h3
+      id="messageModalTitle"
+      class="custom-modal-title"
+    >
+      Berhasil Dihapus
+    </h3>
+
+    <p
+      id="messageModalText"
+      class="custom-modal-text"
+    >
+      Berkas berhasil dihapus.
+    </p>
+
+    <div class="custom-modal-actions">
+
+      <button
+        class="custom-modal-btn primary"
+        type="button"
+        onclick="closeMessageModal()"
+      >
+        OK
+      </button>
+
+    </div>
+
+  </div>
+</div>
+
+
+<!-- PDF PREVIEW INTERNAL -->
+<div id="pdfPreviewModal" class="pdf-preview-modal" aria-hidden="true">
+  <div class="pdf-preview-dialog" role="dialog" aria-modal="true">
+    <div class="pdf-preview-header">
+      <div class="pdf-preview-title-wrap">
+        <div class="pdf-preview-title-icon">
+          <i class="bi bi-file-earmark-pdf-fill"></i>
+        </div>
+        <div>
+          <div class="pdf-preview-title">Preview Berkas</div>
+          <div id="pdfPreviewFileName" class="pdf-preview-file-name">-</div>
+        </div>
+      </div>
+
+      <div class="pdf-preview-header-actions">
+        <div class="pdf-zoom-controls" aria-label="Kontrol zoom PDF">
+          <button
+            id="pdfZoomOutButton"
+            class="pdf-zoom-btn"
+            type="button"
+            onclick="zoomPdfOut()"
+            title="Zoom Out"
+            aria-label="Zoom Out"
+          >
+            <i class="bi bi-dash-lg"></i>
+          </button>
+
+          <span id="pdfZoomLabel" class="pdf-zoom-label">100%</span>
+
+          <button
+            id="pdfZoomInButton"
+            class="pdf-zoom-btn"
+            type="button"
+            onclick="zoomPdfIn()"
+            title="Zoom In"
+            aria-label="Zoom In"
+          >
+            <i class="bi bi-plus-lg"></i>
+          </button>
+
+          <button
+            id="pdfZoomResetButton"
+            class="pdf-zoom-reset-btn"
+            type="button"
+            onclick="resetPdfZoom()"
+            title="Reset Zoom"
+          >
+            Reset
+          </button>
+        </div>
+
+        <button class="pdf-preview-close" type="button" onclick="closePdfPreview()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+    </div>
+
+    <div id="pdfPreviewLoading" class="pdf-preview-loading">
+      <div class="spinner-border text-primary" role="status"></div>
+      <span>Memuat preview PDF...</span>
+    </div>
+
+    <div id="pdfPreviewError" class="pdf-preview-error hidden"></div>
+
+    <div id="pdfPreviewBody" class="pdf-preview-body hidden">
+      <div id="pdfPreviewPages" class="pdf-preview-pages" aria-label="Preview PDF"></div>
+    </div>
+
+    <div class="pdf-preview-footer">
+      <button class="btn btn-light" type="button" onclick="closePdfPreview()">
+        Tutup
+      </button>
+    </div>
+  </div>
+</div>
